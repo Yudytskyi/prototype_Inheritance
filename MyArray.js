@@ -112,8 +112,15 @@ myArrayProto.reduce = function (callback, initialValue) {
 
 myArrayProto.flat = function (depth = 1) {
     let array = this;
+    let lengthArray = array.length;
+
     for (let k = 0; k < depth; k++) {
+
         array = flat(array);
+        if (lengthArray === array.length) {
+            break
+        }
+        lengthArray = array.length;
     }
     return array;
 
@@ -187,14 +194,14 @@ console.log(
 );
 console.log(" ");
 
-arr1 = [1,2,,3,[4,5,,6,[7,,8,[11,12]]],9,10];
+arr1 = [1, 2, , 3, [4, 5, , 6, [7, , 8, [11, 12]]], 9, 10];
 console.log('arr1 = [1,2,,3,[4,5,,6,[7,,8,[11,12]]],9,10]')
-console.log("arr1.flat() =>");
+console.log("arr1.flat(0) =>");
 console.log(arr1.flat());
-console.log("arr1.flat(1) =>");
+console.log("arr1.flat(2) =>");
 console.log(arr1.flat(2));
-console.log("arr1.flat(1) =>");
-console.log(arr1.flat(3));
+console.log("arr1.flat(Infinity) =>");
+console.log(arr1.flat(Infinity));
 console.log(" ");
 
 
