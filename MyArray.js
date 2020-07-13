@@ -7,7 +7,7 @@
 
 function MyArray() {
     this.length = 0;
-    this.isMyArray = (array) => array.constructor.name === "MyArray";
+    this.isMyArray = (array) => array instanceof MyArray
 }
 
 const myArrayProto = new MyArray();
@@ -22,10 +22,8 @@ myArrayProto.push = function (...args) {
 };
 
 myArrayProto.find = function (callback) {
-    for (let i = 0; i < this[i]; i++) {
-        if (callback(this[i])) {
-            return this[i];
-        }
+    for (let i = 0; i < this.length; i++) {
+        if (callback(this[i])) return this[i];
     }
 };
 
@@ -37,61 +35,50 @@ myArrayProto.includes = function (searchElement, fromIndex = 0) {
             : this.length + fromIndex
             : fromIndex;
     for (let i = index; i < this.length; i++) {
-        if (this[i] === searchElement) {
-            return true;
-        }
+        if (this[i] === searchElement) return true;
     }
     return false;
 };
 
 myArrayProto.join = function (separator = ",") {
     separator = separator.toString();
-    let str = "";
-    if (this.length === 0) {
-        return str;
-    }
-    for (let i = 0; i < this.length; i++) {
-        str += i < this.length - 1 ? this[i] + separator : this[i];
+    if (!this.length) return '';
+
+    let str = this[0];
+
+    for (let i = 1; i < this.length; i++) {
+        str += separator + this[i];
     }
     return str;
 };
 
-myArrayProto.filter = function (collback, thisArg) {
+myArrayProto.filter = function (collback) {
     const newArray = [];
-    let n = 0;
     for (let i = 0; i < this.length; i++) {
         if (collback(this[i], i, this)) {
-            newArray[n++] = this[i];
+            newArray[newArray.length++] = this[i];
         }
     }
     return newArray;
 };
 
-myArrayProto.map = function (collback, thisArg) {
+myArrayProto.map = function (collback) {
     const newArray = [];
     for (newArray.length; newArray.length < this.length;) {
-        newArray[newArray.length] = collback(
-            this[newArray.length],
-            newArray.length,
-            this
-        );
+        newArray[newArray.length] = collback(this[newArray.length], newArray.length, this);
     }
     return newArray;
 };
 
 myArrayProto.reduce = function (callback, initialValue) {
-    const array = []; /* create processed array */
+    const array = [];
 
     for (let i = 0; i < this.length; i++) {
-        /* delete empty elements */
-        if (this[i]) {
-            array[array.length++] = this[i];
-        }
+
+        if (this[i]) array[array.length++] = this[i];
     }
 
-    if (array.length === 0) {
-        return initialValue ? initialValue : TypeError;
-    }
+    if (array.length === 0) return initialValue ? initialValue : TypeError;
 
     let accumulator, startingIndex;
 
@@ -111,43 +98,31 @@ myArrayProto.reduce = function (callback, initialValue) {
 };
 
 myArrayProto.flat = function (depth = 1) {
-    let array = this;
-    let lengthArray = array.length;
+    if (depth < 0) return this;
+    let n = depth ? 1 : 0;
+    const newArray = new MyArray();
+    for (let i = 0; i < this.length; i++) {
+        if (!this[i]) continue;
 
-    for (let k = 0; k < depth; k++) {
-
-        array = flat(array);
-        if (lengthArray === array.length) {
-            break
-        }
-        lengthArray = array.length;
-    }
-    return array;
-
-    function flat(array) {
-        const newArray = [];
-
-        for (let i = 0; i < array.length; i++) {
-            if (!array[i]) {
-                continue;
-            }
-
-            if (Array.isArray(array[i])) {
-                const innerArray = [];
-                for (let n = 0; n < array[i].length; n++) {
-                    innerArray[innerArray.length++] = array[i][n];
+        if (Array.isArray(this[i])) {
+            let addElem = myArrayProto.flat.call(this[i],depth - n);
+            if (depth){
+                for (let g=0;g<addElem.length;g++){
+                    newArray[newArray.length++] = addElem[g]
                 }
-                newArray[newArray.length++] = innerArray;
             } else {
-                newArray[newArray.length++] = array[i];
+                newArray[newArray.length++] = addElem
+
             }
+        } else {
+            newArray[newArray.length++] = this[i];
         }
-        return newArray;
     }
+    return newArray;
 };
 
 myArrayProto.pop = function () {
-    return delete this[this.length-- - 1];
+    delete this[this.length-- - 1];
 };
 
 const arr = new MyArray();
@@ -194,14 +169,22 @@ console.log(
 );
 console.log(" ");
 
-arr1 = [1, 2, , 3, [4, 5, , 6, [7, , 8, [11, 12]]], 9, 10];
-console.log('arr1 = [1,2,,3,[4,5,,6,[7,,8,[11,12]]],9,10]')
-console.log("arr1.flat(0) =>");
-console.log(arr1.flat());
-console.log("arr1.flat(2) =>");
-console.log(arr1.flat(2));
-console.log("arr1.flat(Infinity) =>");
-console.log(arr1.flat(Infinity));
+const arrFlat = new MyArray();
+console.log('arrFlat = [1, 2, , 3, [4, 5, , 6, [7, , 8, [11, , 12]]], 9, 10]');
+arrFlat.push([1, 2, , 3, [4, 5, , 6, [7, , 8, [11, , 12]]], 9, 10]);
+console.dir(arrFlat);
+console.log(" ");
+console.log("arr.flat(0) =>");
+console.log(arrFlat.flat(0));
+console.log(" ");
+console.log("arr.flat(1) =>");
+console.log(arrFlat.flat(1));
+console.log(" ");
+console.log("arr.flat(2) =>");
+console.log(arrFlat.flat(2));
+console.log(" ");
+console.log("arr.flat(Infinity) =>");
+console.log(arrFlat.flat(Infinity));
 console.log(" ");
 
 
